@@ -61,3 +61,24 @@ def test_hatchling_build_backend_supports_pep_639():
     assert re.search(r'requires = \["hatchling>=1\.27', text), (
         "PEP 639 licence metadata needs hatchling >= 1.27"
     )
+
+
+RELEASE_VERSION = "0.1.1"
+
+
+def test_release_version_is_declared_once_and_documented():
+    """pyproject.toml is the single version source; README and CHANGELOG follow it."""
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))["project"]
+    assert project["version"] == RELEASE_VERSION
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert f"Version {RELEASE_VERSION}" in readme
+    assert f"ai_code_auditor-{RELEASE_VERSION}-py3-none-any.whl" in readme
+    assert "ai_code_auditor-0.1.0-py3-none-any.whl" not in readme
+    changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert f"## {RELEASE_VERSION} " in changelog
+    # the 0.1.0 entry is history and stays
+    assert "## 0.1.0 " in changelog
+    # the package reads the version from the installed metadata, never from a literal
+    init = (ROOT / "src/auditor/__init__.py").read_text(encoding="utf-8")
+    assert 'version("ai-code-auditor")' in init
+    assert RELEASE_VERSION not in init

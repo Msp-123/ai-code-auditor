@@ -5,8 +5,9 @@ projects. It runs Ruff, Semgrep, Gitleaks and (with permission) pip-audit, merge
 into one canonical report with honest coverage and a quality gate, and never executes, imports
 or modifies the project it scans.
 
-Version 0.1.0 (MVP). Verified on Windows 11 / CPython 3.12 only. Install from the wheel built
-from this repository (see Installation); there is no PyPI package.
+Version 0.1.1 (MVP; documentation and packaging update of 0.1.0, same scanner code). Verified
+on Windows 11 / CPython 3.12 only. Install from the wheel built from this repository (see
+Installation); there is no PyPI package.
 
 ## What is AI Code Auditor?
 
@@ -83,7 +84,7 @@ or build and install the wheel (hatchling; two independent builds are byte-ident
 ```powershell
 .venv\Scripts\python.exe -m pip install hatchling
 .venv\Scripts\python.exe -c "import hatchling.build as b; print(b.build_wheel('dist'))"
-.venv\Scripts\python.exe -m pip install dist\ai_code_auditor-0.1.0-py3-none-any.whl
+.venv\Scripts\python.exe -m pip install dist\ai_code_auditor-0.1.1-py3-none-any.whl
 ```
 
 Activating the environment is optional. In VS Code, select `.venv\Scripts\python.exe` as the
@@ -132,7 +133,7 @@ then install offline:
 ### 6. Verify
 
 ```powershell
-.venv\Scripts\auditor.exe --version      # auditor 0.1.0
+.venv\Scripts\auditor.exe --version      # auditor 0.1.1
 .venv\Scripts\auditor.exe doctor         # platform, Python, every scanner, ruleset integrity
 .venv\Scripts\python.exe -m pytest -q    # development install only
 ```
@@ -339,8 +340,9 @@ Full report: `docs/MVP_VALIDATION.md`. The initial pilot before hardening is pre
 
 ## Documentation
 
-- `CHANGELOG.md` — what 0.1.0 contains and its known limitations.
-- `docs/MVP_VALIDATION.md` — validation report of the released 0.1.0 build.
+- `CHANGELOG.md` — what each version contains and its known limitations.
+- `docs/MVP_VALIDATION.md` — validation report of the 0.1.0 build, whose scanner code is
+  unchanged in 0.1.1.
 - `docs/PILOT_01_VALIDATION.md` — historical report of the initial pilot, before hardening.
 - `schemas/report-v1.schema.json` — the report schema (1.1.0).
 - `THIRD_PARTY_NOTICES.md` — third-party material contained in the published files.

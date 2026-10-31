@@ -1,7 +1,12 @@
 # AI Code Auditor 0.1.0 — validation report
 
-This report describes how the released 0.1.0 build of AI Code Auditor was validated and what
-was measured. It is evidence-based: every figure comes from a recorded run on the stated
+This report describes how the 0.1.0 build of AI Code Auditor was validated and what was
+measured. **Applicability to 0.1.1:** version 0.1.1 is a documentation and packaging update
+with the identical `src/auditor` package code, rules and report schema; no measurement in this
+report was repeated on 0.1.1, and none needed to be, because the scanner behaviour did not
+change. The benchmark evidence below was collected on the 0.1.0 development builds named in
+§2 and re-confirmed by the full test suite and the clean-environment smoke test of the 0.1.1
+package. It is evidence-based: every figure comes from a recorded run on the stated
 environment, and every ratio keeps its own denominator. Nothing here generalises to all Python
 projects; the accuracy measurements cover three public repositories, chosen for their
 properties, scanned offline at pinned commits.
@@ -36,7 +41,7 @@ report `PILOT_01_VALIDATION.md`.
 
 | Item | Value |
 |---|---|
-| Product | AI Code Auditor 0.1.0 (MVP) |
+| Product | AI Code Auditor 0.1.0 (MVP); scanner code identical in 0.1.1 |
 | Report schema | `ai-code-auditor/report` 1.1.0 (`schemas/report-v1.schema.json`); 1.0.0 runs are still readable by `auditor report` |
 | Release source | Development commit `a86be96`; the public repository's initial commit (`9edd5c4c…`, tag `v0.1.0`) contains the same 156 files |
 | Operating system | Windows 11 (10.0.26200) |

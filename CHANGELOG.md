@@ -2,7 +2,24 @@
 
 All notable changes to AI Code Auditor. The version in `pyproject.toml` is the single source.
 
-## 0.1.0 — MVP (2026-10-30, not tagged or published)
+## 0.1.1 — Documentation and packaging update (2026-10-31)
+
+- Fully English public documentation (README, CHANGELOG, validation reports).
+- `docs/MVP_VALIDATION.md` is the updated validation report of the 0.1.0 build (safety
+  invariants, accuracy on three repositories, verified SQL data flow, finding identity
+  stability, reproducible packaging, test results). The historical Pilot 01 report is
+  preserved separately and unchanged as `docs/PILOT_01_VALIDATION.md`.
+- Package version aligned with the latest documentation: `pyproject.toml` `version = "0.1.1"`
+  (the single version source). README installation examples name the 0.1.1 wheel.
+- **No scanner behaviour changes and no security detection logic changes.** The `src/auditor`
+  package files, rules, schema (1.1.0), exit codes, licence expression (`Apache-2.0 AND MIT`)
+  and the Python >= 3.12 policy are identical to 0.1.0. The verified SQL data flow (H5) and
+  the stable Gitleaks finding identities (P9) were already part of the 0.1.0 code.
+- Existing known limitations remain (see the 0.1.0 section below).
+- Release status of 0.1.0: the Git tag `v0.1.0` exists on the initial public commit, but no
+  GitHub Release and no PyPI package were published for it.
+
+## 0.1.0 — MVP (2026-10-30; tagged `v0.1.0` on the initial public commit, no GitHub Release or PyPI package)
 
 First MVP: a read-only, offline-by-default audit CLI for local Python projects on Windows 11
 and Python 3.12. The target is untrusted input: it is never executed, imported, installed or
@@ -96,7 +113,7 @@ written to, and secret values never reach a report, the terminal or a log.
 ### Documentation (2026-10-31, same version)
 
 - All public documentation is in English. `docs/MVP_VALIDATION.md` is the validation report of
-  the released 0.1.0 build (safety invariants, accuracy on three repositories, verified SQL
+  the 0.1.0 build (safety invariants, accuracy on three repositories, verified SQL
   data flow, finding identity stability, reproducible packaging, test results). The initial
   pilot before hardening is preserved unchanged as `docs/PILOT_01_VALIDATION.md`.
 - README restructured for GitHub users: features, scanners, installation, quick start, CLI
@@ -112,7 +129,8 @@ Precedence: 1 and 2 > 4 > 3.
 
 ### Known limitations
 
-The measured results are in `docs/MVP_VALIDATION.md` (current 0.1.0 build) and
+The measured results are in `docs/MVP_VALIDATION.md` (0.1.0 build; scanner code unchanged in
+0.1.1) and
 `docs/PILOT_01_VALIDATION.md` (historical pilot); three repositories, nothing here generalises
 to all Python projects. The development repository keeps the full per-stage limitation lists
 and the decision log. In short:

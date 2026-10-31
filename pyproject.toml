@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "ai-code-auditor"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evidence-based, read-only, offline-by-default audit CLI for local Python projects (Ruff, Semgrep, Gitleaks, pip-audit) with a unified report and a quality gate."
 readme = "README.md"
 # SPDX expression (PEP 639) for the distribution as a whole: the project is Apache-2.0 and the
