@@ -1,0 +1,1593 @@
+{
+  "$defs": {
+    "AreaStatus": {
+      "enum": [
+        "COMPLETE",
+        "PARTIAL",
+        "FAILED",
+        "DISABLED",
+        "NOT_APPLICABLE",
+        "NOT_REQUESTED",
+        "NOT_PERMITTED",
+        "NOT_RUN"
+      ],
+      "title": "AreaStatus",
+      "type": "string"
+    },
+    "Confidence": {
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "Confidence",
+      "type": "string"
+    },
+    "Coverage": {
+      "properties": {
+        "areas": {
+          "items": {
+            "$ref": "#/$defs/CoverageArea"
+          },
+          "title": "Areas",
+          "type": "array"
+        },
+        "incomplete_reasons": {
+          "items": {
+            "$ref": "#/$defs/IncompleteReason"
+          },
+          "title": "Incomplete Reasons",
+          "type": "array"
+        },
+        "meaning": {
+          "default": "COMPLETE means every requested check covered its whole scope. It does not mean that nothing was found, that every possible check was made, or that the project is safe.",
+          "title": "Meaning",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ScanStatus"
+        }
+      },
+      "required": [
+        "status",
+        "incomplete_reasons",
+        "areas"
+      ],
+      "title": "Coverage",
+      "type": "object"
+    },
+    "CoverageArea": {
+      "properties": {
+        "area": {
+          "title": "Area",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/AreaStatus"
+        },
+        "tool": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Tool"
+        }
+      },
+      "required": [
+        "area",
+        "tool",
+        "status",
+        "reason"
+      ],
+      "title": "CoverageArea",
+      "type": "object"
+    },
+    "CoverageStatus": {
+      "enum": [
+        "SCANNED",
+        "SCANNED_WITH_LIMITATIONS",
+        "NOT_ANALYZED",
+        "NOT_RUN",
+        "NOT_APPLICABLE"
+      ],
+      "title": "CoverageStatus",
+      "type": "string"
+    },
+    "EntryKind": {
+      "enum": [
+        "file",
+        "directory",
+        "link",
+        "other"
+      ],
+      "title": "EntryKind",
+      "type": "string"
+    },
+    "Evidence": {
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "redacted": {
+          "default": false,
+          "title": "Redacted",
+          "type": "boolean"
+        },
+        "reference": {
+          "title": "Reference",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "reference"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "ExcludedEntry": {
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/EntryKind"
+        },
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "points_outside_root": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Points Outside Root"
+        },
+        "reason": {
+          "$ref": "#/$defs/ExclusionReason"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relative_path",
+        "kind",
+        "reason"
+      ],
+      "title": "ExcludedEntry",
+      "type": "object"
+    },
+    "ExclusionReason": {
+      "description": "Why an entry is not part of the inventory.",
+      "enum": [
+        "VCS_METADATA",
+        "VIRTUALENV",
+        "EXCLUDED_DIR",
+        "SYMLINK",
+        "JUNCTION",
+        "REPARSE_POINT",
+        "SPECIAL_FILE",
+        "INVALID_NAME",
+        "UNREADABLE",
+        "MAX_DEPTH",
+        "CHANGED_DURING_SCAN"
+      ],
+      "title": "ExclusionReason",
+      "type": "string"
+    },
+    "FileCategory": {
+      "enum": [
+        "python_source",
+        "test",
+        "dependency_manifest",
+        "config",
+        "doc",
+        "other"
+      ],
+      "title": "FileCategory",
+      "type": "string"
+    },
+    "FileContext": {
+      "description": "Where a finding's file sits, from its path only (H6). Never a security proof.",
+      "enum": [
+        "production",
+        "test",
+        "docs",
+        "examples",
+        "config",
+        "unknown"
+      ],
+      "title": "FileContext",
+      "type": "string"
+    },
+    "FileCoverage": {
+      "description": "Per inventory file: what every scanner did with it (no silent skipping).",
+      "properties": {
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "scanners": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ScannerCoverage"
+          },
+          "title": "Scanners",
+          "type": "object"
+        }
+      },
+      "required": [
+        "relative_path",
+        "scanners"
+      ],
+      "title": "FileCoverage",
+      "type": "object"
+    },
+    "FileEntry": {
+      "properties": {
+        "ai_context_allowed": {
+          "title": "Ai Context Allowed",
+          "type": "boolean"
+        },
+        "category": {
+          "$ref": "#/$defs/FileCategory"
+        },
+        "is_sensitive": {
+          "title": "Is Sensitive",
+          "type": "boolean"
+        },
+        "oversized": {
+          "title": "Oversized",
+          "type": "boolean"
+        },
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "secret_scan_eligible": {
+          "title": "Secret Scan Eligible",
+          "type": "boolean"
+        },
+        "size_bytes": {
+          "title": "Size Bytes",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "relative_path",
+        "size_bytes",
+        "category",
+        "is_sensitive",
+        "ai_context_allowed",
+        "secret_scan_eligible",
+        "oversized"
+      ],
+      "title": "FileEntry",
+      "type": "object"
+    },
+    "Finding": {
+      "description": "One normalised finding from any scanner (master plan \u00a78.2).",
+      "properties": {
+        "category": {
+          "$ref": "#/$defs/FindingCategory"
+        },
+        "confidence": {
+          "$ref": "#/$defs/Confidence"
+        },
+        "context": {
+          "$ref": "#/$defs/FileContext",
+          "default": "unknown"
+        },
+        "context_basis": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Context Basis"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "end_column": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Column"
+        },
+        "end_line": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Line"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "finding_id": {
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "fingerprint": {
+          "title": "Fingerprint",
+          "type": "string"
+        },
+        "first_seen_run_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "First Seen Run Id"
+        },
+        "fix_available": {
+          "default": false,
+          "title": "Fix Available",
+          "type": "boolean"
+        },
+        "group_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Group Ids",
+          "type": "array"
+        },
+        "identifiers": {
+          "$ref": "#/$defs/FindingIdentifiers"
+        },
+        "original_severity": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Original Severity"
+        },
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "recommendation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recommendation"
+        },
+        "references": {
+          "items": {
+            "type": "string"
+          },
+          "title": "References",
+          "type": "array"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        },
+        "rule_id": {
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "source_tool": {
+          "title": "Source Tool",
+          "type": "string"
+        },
+        "start_column": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Column"
+        },
+        "start_line": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Start Line"
+        },
+        "tags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Tags",
+          "type": "array"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "verification_status": {
+          "$ref": "#/$defs/VerificationStatus"
+        }
+      },
+      "required": [
+        "finding_id",
+        "fingerprint",
+        "source_tool",
+        "rule_id",
+        "title",
+        "description",
+        "category",
+        "severity",
+        "confidence",
+        "verification_status",
+        "relative_path"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FindingCategory": {
+      "enum": [
+        "security",
+        "correctness",
+        "compatibility",
+        "maintainability",
+        "style",
+        "other"
+      ],
+      "title": "FindingCategory",
+      "type": "string"
+    },
+    "FindingGroup": {
+      "properties": {
+        "basis": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Basis",
+          "type": "object"
+        },
+        "finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Finding Ids",
+          "type": "array"
+        },
+        "group_id": {
+          "title": "Group Id",
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/RelationType"
+        },
+        "statement": {
+          "title": "Statement",
+          "type": "string"
+        }
+      },
+      "required": [
+        "group_id",
+        "relation",
+        "basis",
+        "finding_ids",
+        "statement"
+      ],
+      "title": "FindingGroup",
+      "type": "object"
+    },
+    "FindingIdentifiers": {
+      "description": "Identifiers a finding can be related by; never secret values.",
+      "properties": {
+        "git_object": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Git Object"
+        },
+        "history_paths": {
+          "items": {
+            "type": "string"
+          },
+          "title": "History Paths",
+          "type": "array"
+        },
+        "object_format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Object Format"
+        },
+        "package": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Package"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "vulnerability_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Vulnerability Ids",
+          "type": "array"
+        }
+      },
+      "title": "FindingIdentifiers",
+      "type": "object"
+    },
+    "Gap": {
+      "properties": {
+        "area": {
+          "title": "Area",
+          "type": "string"
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "item": {
+          "title": "Item",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "not_analyzed",
+            "limited"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area",
+        "tool",
+        "kind",
+        "item",
+        "reason"
+      ],
+      "title": "Gap",
+      "type": "object"
+    },
+    "GateResult": {
+      "properties": {
+        "counted": {
+          "default": 0,
+          "title": "Counted",
+          "type": "integer"
+        },
+        "counted_by_effective_severity": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Counted By Effective Severity",
+          "type": "object"
+        },
+        "counted_finding_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Counted Finding Ids",
+          "type": "array"
+        },
+        "fail_on": {
+          "title": "Fail On",
+          "type": "string"
+        },
+        "note": {
+          "default": "The gate uses an effective severity (UNRATED mapped by --unrated-as); findings keep their real severity. Related findings are all counted.",
+          "title": "Note",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/GateStatus"
+        },
+        "unrated_as": {
+          "title": "Unrated As",
+          "type": "string"
+        }
+      },
+      "required": [
+        "status",
+        "fail_on",
+        "unrated_as"
+      ],
+      "title": "GateResult",
+      "type": "object"
+    },
+    "GateStatus": {
+      "enum": [
+        "NOT_EVALUATED",
+        "PASSED",
+        "FAILED"
+      ],
+      "title": "GateStatus",
+      "type": "string"
+    },
+    "IncompleteReason": {
+      "description": "Why an inventory or an audit does not cover the whole target.",
+      "enum": [
+        "MAX_FILES",
+        "MAX_ENTRIES",
+        "MAX_DEPTH",
+        "TIMEOUT",
+        "UNREADABLE",
+        "CHANGED_DURING_SCAN",
+        "SCANNER_NOT_INSTALLED",
+        "SCANNER_ERROR",
+        "SCANNER_TIMED_OUT",
+        "FILES_NOT_ANALYZED",
+        "FILES_ANALYZED_WITH_LIMITATIONS",
+        "CLEANUP_FAILED"
+      ],
+      "title": "IncompleteReason",
+      "type": "string"
+    },
+    "Limitation": {
+      "properties": {
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "text"
+      ],
+      "title": "Limitation",
+      "type": "object"
+    },
+    "LimitedFile": {
+      "description": "A file the scanner did scan, but whose analysis may be incomplete.",
+      "properties": {
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relative_path",
+        "reason"
+      ],
+      "title": "LimitedFile",
+      "type": "object"
+    },
+    "LimitsSummary": {
+      "properties": {
+        "max_depth": {
+          "title": "Max Depth",
+          "type": "integer"
+        },
+        "max_duration_seconds": {
+          "title": "Max Duration Seconds",
+          "type": "number"
+        },
+        "max_entries_visited": {
+          "title": "Max Entries Visited",
+          "type": "integer"
+        },
+        "max_file_size_bytes": {
+          "title": "Max File Size Bytes",
+          "type": "integer"
+        },
+        "max_files": {
+          "title": "Max Files",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_files",
+        "max_entries_visited",
+        "max_depth",
+        "max_file_size_bytes",
+        "max_duration_seconds"
+      ],
+      "title": "LimitsSummary",
+      "type": "object"
+    },
+    "NotAnalyzedFile": {
+      "properties": {
+        "detail": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Detail"
+        },
+        "path_redacted": {
+          "default": false,
+          "title": "Path Redacted",
+          "type": "boolean"
+        },
+        "reason": {
+          "$ref": "#/$defs/NotAnalyzedReason"
+        },
+        "relative_path": {
+          "title": "Relative Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "relative_path",
+        "reason"
+      ],
+      "title": "NotAnalyzedFile",
+      "type": "object"
+    },
+    "NotAnalyzedReason": {
+      "enum": [
+        "PARSE_ERROR",
+        "IO_ERROR",
+        "CHANGED_BEFORE_SCAN",
+        "BATCH_FAILED",
+        "TIMED_OUT",
+        "TOOL_ERROR",
+        "SKIPPED_BY_TOOL",
+        "SIZE_LIMIT",
+        "NETWORK_NOT_ALLOWED",
+        "UNSUPPORTED_MANIFEST",
+        "UNSAFE_REPOSITORY"
+      ],
+      "title": "NotAnalyzedReason",
+      "type": "string"
+    },
+    "OperationalError": {
+      "description": "A security-relevant problem of the auditor itself, not a finding about the target.",
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/OperationalErrorCode"
+        },
+        "component": {
+          "title": "Component",
+          "type": "string"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        },
+        "workspace": {
+          "title": "Workspace",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "component",
+        "workspace",
+        "message"
+      ],
+      "title": "OperationalError",
+      "type": "object"
+    },
+    "OperationalErrorCode": {
+      "enum": [
+        "CLEANUP_FAILED",
+        "STALE_WORKSPACES_FOUND",
+        "INCOMPLETE_REPORTS_FOUND"
+      ],
+      "title": "OperationalErrorCode",
+      "type": "string"
+    },
+    "Outcome": {
+      "properties": {
+        "by_confidence": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Confidence",
+          "type": "object"
+        },
+        "by_context": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "default": {},
+          "title": "By Context",
+          "type": "object"
+        },
+        "by_severity": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Severity",
+          "type": "object"
+        },
+        "by_source": {
+          "additionalProperties": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
+          },
+          "title": "By Source",
+          "type": "object"
+        },
+        "by_verification": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "By Verification",
+          "type": "object"
+        },
+        "findings_in_groups": {
+          "title": "Findings In Groups",
+          "type": "integer"
+        },
+        "related_groups": {
+          "title": "Related Groups",
+          "type": "integer"
+        },
+        "statement": {
+          "default": "Scanner findings are leads to review (NEEDS_REVIEW), not confirmed vulnerabilities. No findings does not mean the project is safe.",
+          "title": "Statement",
+          "type": "string"
+        },
+        "total": {
+          "title": "Total",
+          "type": "integer"
+        },
+        "unrated": {
+          "title": "Unrated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total",
+        "by_severity",
+        "by_source",
+        "by_confidence",
+        "by_verification",
+        "unrated",
+        "related_groups",
+        "findings_in_groups"
+      ],
+      "title": "Outcome",
+      "type": "object"
+    },
+    "Permissions": {
+      "properties": {
+        "disabled_scanners": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Disabled Scanners",
+          "type": "array"
+        },
+        "git_history": {
+          "title": "Git History",
+          "type": "boolean"
+        },
+        "network": {
+          "title": "Network",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "network",
+        "git_history",
+        "disabled_scanners"
+      ],
+      "title": "Permissions",
+      "type": "object"
+    },
+    "Privacy": {
+      "properties": {
+        "ai_context_allowed": {
+          "default": false,
+          "title": "Ai Context Allowed",
+          "type": "boolean"
+        },
+        "contains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Contains",
+          "type": "array"
+        },
+        "never_contains": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Never Contains",
+          "type": "array"
+        },
+        "note": {
+          "default": "Contains metadata about the target that can be sensitive (paths, commit ids). It is not prepared for AI context; a later stage must build such context separately.",
+          "title": "Note",
+          "type": "string"
+        }
+      },
+      "title": "Privacy",
+      "type": "object"
+    },
+    "RelationType": {
+      "enum": [
+        "same_location",
+        "same_content_in_history",
+        "same_vulnerability"
+      ],
+      "title": "RelationType",
+      "type": "string"
+    },
+    "RepositoryInventory": {
+      "properties": {
+        "entries_visited": {
+          "title": "Entries Visited",
+          "type": "integer"
+        },
+        "excluded": {
+          "items": {
+            "$ref": "#/$defs/ExcludedEntry"
+          },
+          "title": "Excluded",
+          "type": "array"
+        },
+        "excluded_by_reason": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "readOnly": true,
+          "title": "Excluded By Reason",
+          "type": "object"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/FileEntry"
+          },
+          "title": "Files",
+          "type": "array"
+        },
+        "files_by_category": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "readOnly": true,
+          "title": "Files By Category",
+          "type": "object"
+        },
+        "finished_at": {
+          "format": "date-time",
+          "title": "Finished At",
+          "type": "string"
+        },
+        "incomplete_reasons": {
+          "items": {
+            "$ref": "#/$defs/IncompleteReason"
+          },
+          "title": "Incomplete Reasons",
+          "type": "array"
+        },
+        "limits": {
+          "$ref": "#/$defs/LimitsSummary"
+        },
+        "oversized_file_count": {
+          "readOnly": true,
+          "title": "Oversized File Count",
+          "type": "integer"
+        },
+        "root_name": {
+          "title": "Root Name",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "scanners": {
+          "items": {
+            "$ref": "#/$defs/ToolCoverage"
+          },
+          "title": "Scanners",
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sensitive_file_count": {
+          "readOnly": true,
+          "title": "Sensitive File Count",
+          "type": "integer"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ScanStatus"
+        },
+        "unvisited_directories": {
+          "title": "Unvisited Directories",
+          "type": "integer"
+        },
+        "vcs_metadata": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Vcs Metadata",
+          "type": "array"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_id",
+        "started_at",
+        "finished_at",
+        "root_name",
+        "status",
+        "incomplete_reasons",
+        "vcs_metadata",
+        "entries_visited",
+        "unvisited_directories",
+        "limits",
+        "files",
+        "excluded",
+        "scanners",
+        "warnings",
+        "files_by_category",
+        "excluded_by_reason",
+        "sensitive_file_count",
+        "oversized_file_count"
+      ],
+      "title": "RepositoryInventory",
+      "type": "object"
+    },
+    "RunInfo": {
+      "properties": {
+        "auditor_version": {
+          "title": "Auditor Version",
+          "type": "string"
+        },
+        "duration_seconds": {
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "finished_at": {
+          "format": "date-time",
+          "title": "Finished At",
+          "type": "string"
+        },
+        "platform": {
+          "title": "Platform",
+          "type": "string"
+        },
+        "python": {
+          "title": "Python",
+          "type": "string"
+        },
+        "run_id": {
+          "title": "Run Id",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "started_at",
+        "finished_at",
+        "duration_seconds",
+        "auditor_version",
+        "platform",
+        "python"
+      ],
+      "title": "RunInfo",
+      "type": "object"
+    },
+    "ScanStatus": {
+      "enum": [
+        "COMPLETE",
+        "PARTIAL"
+      ],
+      "title": "ScanStatus",
+      "type": "string"
+    },
+    "ScannerCoverage": {
+      "properties": {
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason"
+        },
+        "status": {
+          "$ref": "#/$defs/CoverageStatus"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "ScannerCoverage",
+      "type": "object"
+    },
+    "Severity": {
+      "enum": [
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "INFO",
+        "UNRATED"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "SuppressedFindings": {
+      "description": "Findings dropped by an explicit auditor policy \u2014 always counted, never silently lost.",
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "rule_id": {
+          "title": "Rule Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule_id",
+        "reason",
+        "count"
+      ],
+      "title": "SuppressedFindings",
+      "type": "object"
+    },
+    "ToolCoverage": {
+      "properties": {
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ToolStatus"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "status",
+        "reason"
+      ],
+      "title": "ToolCoverage",
+      "type": "object"
+    },
+    "ToolExecution": {
+      "description": "What a scanner actually did \u2014 kept separate from what it found.",
+      "properties": {
+        "command_summary": {
+          "default": "",
+          "title": "Command Summary",
+          "type": "string"
+        },
+        "coverage_limitations": {
+          "items": {
+            "$ref": "#/$defs/LimitedFile"
+          },
+          "title": "Coverage Limitations",
+          "type": "array"
+        },
+        "duration_seconds": {
+          "default": 0.0,
+          "title": "Duration Seconds",
+          "type": "number"
+        },
+        "exit_codes": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Exit Codes",
+          "type": "array"
+        },
+        "files_analyzed": {
+          "default": 0,
+          "title": "Files Analyzed",
+          "type": "integer"
+        },
+        "files_requested": {
+          "default": 0,
+          "title": "Files Requested",
+          "type": "integer"
+        },
+        "not_analyzed": {
+          "items": {
+            "$ref": "#/$defs/NotAnalyzedFile"
+          },
+          "title": "Not Analyzed",
+          "type": "array"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "settings": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Settings",
+          "type": "object"
+        },
+        "status": {
+          "$ref": "#/$defs/ToolStatus"
+        },
+        "stderr_excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stderr Excerpt"
+        },
+        "suppressed": {
+          "items": {
+            "$ref": "#/$defs/SuppressedFindings"
+          },
+          "title": "Suppressed",
+          "type": "array"
+        },
+        "tool": {
+          "title": "Tool",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Version"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tool",
+        "version",
+        "status",
+        "reason"
+      ],
+      "title": "ToolExecution",
+      "type": "object"
+    },
+    "ToolStatus": {
+      "enum": [
+        "NOT_INSTALLED",
+        "READY",
+        "RUNNING",
+        "SUCCESS",
+        "SKIPPED",
+        "ERROR",
+        "TIMED_OUT"
+      ],
+      "title": "ToolStatus",
+      "type": "string"
+    },
+    "VerificationStatus": {
+      "enum": [
+        "CONFIRMED",
+        "PROBABLE",
+        "NEEDS_REVIEW",
+        "DISPROVEN"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://ai-code-auditor.invalid/schemas/report-v1.schema.json",
+  "properties": {
+    "coverage": {
+      "$ref": "#/$defs/Coverage"
+    },
+    "discovery": {
+      "$ref": "#/$defs/RepositoryInventory"
+    },
+    "file_coverage": {
+      "items": {
+        "$ref": "#/$defs/FileCoverage"
+      },
+      "title": "File Coverage",
+      "type": "array"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "gaps": {
+      "items": {
+        "$ref": "#/$defs/Gap"
+      },
+      "title": "Gaps",
+      "type": "array"
+    },
+    "gate": {
+      "$ref": "#/$defs/GateResult"
+    },
+    "groups": {
+      "items": {
+        "$ref": "#/$defs/FindingGroup"
+      },
+      "title": "Groups",
+      "type": "array"
+    },
+    "limitations": {
+      "items": {
+        "$ref": "#/$defs/Limitation"
+      },
+      "title": "Limitations",
+      "type": "array"
+    },
+    "mode": {
+      "enum": [
+        "audit",
+        "discovery"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "operational_errors": {
+      "items": {
+        "$ref": "#/$defs/OperationalError"
+      },
+      "title": "Operational Errors",
+      "type": "array"
+    },
+    "operational_warnings": {
+      "items": {
+        "$ref": "#/$defs/OperationalError"
+      },
+      "title": "Operational Warnings",
+      "type": "array"
+    },
+    "outcome": {
+      "$ref": "#/$defs/Outcome"
+    },
+    "permissions": {
+      "$ref": "#/$defs/Permissions"
+    },
+    "privacy": {
+      "$ref": "#/$defs/Privacy"
+    },
+    "report_schema": {
+      "const": "ai-code-auditor/report",
+      "default": "ai-code-auditor/report",
+      "title": "Report Schema",
+      "type": "string"
+    },
+    "run": {
+      "$ref": "#/$defs/RunInfo"
+    },
+    "schema_version": {
+      "default": "1.1.0",
+      "enum": [
+        "1.0.0",
+        "1.1.0"
+      ],
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_name": {
+      "title": "Target Name",
+      "type": "string"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ToolExecution"
+      },
+      "title": "Tools",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mode",
+    "run",
+    "target_name",
+    "permissions",
+    "coverage",
+    "outcome",
+    "gate",
+    "discovery"
+  ],
+  "title": "AI Code Auditor report v1",
+  "type": "object"
+}

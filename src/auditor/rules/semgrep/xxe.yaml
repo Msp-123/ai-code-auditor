@@ -1,0 +1,23 @@
+rules:
+  - id: auditor.python.xxe.lxml-unsafe-parser
+    languages: [python]
+    severity: ERROR
+    message: >-
+      An lxml XML parser is configured to resolve external entities or access the network. On
+      untrusted XML this allows XML External Entity (XXE) attacks.
+    metadata:
+      category: security
+      auditor_group: xxe
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Use defusedxml, or lxml.etree.XMLParser(resolve_entities=False, no_network=True).
+      cwe: ["CWE-611: Improper Restriction of XML External Entity Reference"]
+      owasp: ["A05:2021 - Security Misconfiguration"]
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/611.html"]
+    pattern-either:
+      - pattern: lxml.etree.XMLParser(..., resolve_entities=True, ...)
+      - pattern: lxml.etree.XMLParser(..., no_network=False, ...)
+      - pattern: lxml.etree.XMLParser(..., load_dtd=True, ...)

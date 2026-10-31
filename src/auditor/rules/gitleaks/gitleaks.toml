@@ -1,0 +1,10 @@
+# AI Code Auditor - Gitleaks configuration (Stage 4a, D-043).
+#
+# Extends the default rules embedded in the pinned Gitleaks binary (8.30.1) and adds no
+# global allowlist of its own. Any exception must be rule-targeted
+# ([[allowlists]] with targetRules = [...]), as narrow as possible and covered by a test.
+# The SHA-256 of this file is pinned in auditor.scanners.gitleaks_adapter.
+title = "ai-code-auditor gitleaks config"
+
+[extend]
+useDefault = true

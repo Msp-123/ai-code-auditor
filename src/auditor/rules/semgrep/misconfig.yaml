@@ -1,0 +1,23 @@
+rules:
+  - id: auditor.python.misconfig.flask-debug-enabled
+    languages: [python]
+    severity: WARNING
+    message: >-
+      A Flask application is started with debug=True. The Werkzeug debugger allows code
+      execution for anyone who can reach it.
+    metadata:
+      category: security
+      auditor_group: misconfiguration
+      auditor_severity: MEDIUM
+      auditor_recommendation: Never enable debug mode outside local development.
+      cwe: ["CWE-489: Active Debug Code"]
+      owasp: ["A05:2021 - Security Misconfiguration"]
+      confidence: HIGH
+      likelihood: LOW
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/489.html"]
+    patterns:
+      - pattern-inside: |
+          $APP = flask.Flask(...)
+          ...
+      - pattern: $APP.run(..., debug=True, ...)

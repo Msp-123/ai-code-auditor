@@ -1,0 +1,21 @@
+# The Semgrep ruleset is verified byte-for-byte against MANIFEST.json (SHA-256). Line-ending
+# conversion on checkout (core.autocrlf) would change the bytes and break the integrity check.
+src/auditor/rules/semgrep/*.yaml text eol=lf
+src/auditor/rules/semgrep/MANIFEST.json text eol=lf
+src/auditor/rules/gitleaks/*.toml text eol=lf
+tools/*.lock.txt text eol=lf
+
+# H1: every source and data file is stored and checked out with LF so that a wheel built from
+# any checkout has the same bytes (and hash) as one built from `git archive`.
+*.py text eol=lf
+*.pyi text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.cfg text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+LICENSE text eol=lf

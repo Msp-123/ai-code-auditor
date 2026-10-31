@@ -1,0 +1,22 @@
+# Virtual environment
+.venv/
+
+# Python build / cache artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Tool caches
+.pytest_cache/
+.ruff_cache/
+
+# Audit outputs (never committed). Anchored to the repo root: an unanchored "reports/"
+# would also ignore the src/auditor/reports/ source package.
+/reports/
+
+# Local secrets — only .env.example may be committed
+.env
+.env.*
+!.env.example

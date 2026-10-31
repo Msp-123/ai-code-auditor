@@ -1,0 +1,54 @@
+rules:
+  - id: auditor.python.path-traversal.tainted-file-path
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data is used as a file system path. Sequences such as '../' may give
+      access to files outside the intended directory.
+    metadata:
+      category: security
+      auditor_group: path-traversal
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Reduce the input to a file name (os.path.basename / werkzeug secure_filename), or
+        resolve the final path and verify it stays inside the allowed base directory.
+      cwe: ["CWE-22: Improper Limitation of a Pathname to a Restricted Directory"]
+      owasp: ["A01:2021 - Broken Access Control"]
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/22.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.FILES
+    pattern-sanitizers:
+      # Context-specific: these reduce a value to a single path component.
+      - pattern: os.path.basename(...)
+      - pattern: werkzeug.utils.secure_filename(...)
+      - pattern: int(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: open($P, ...)
+              - pattern: io.open($P, ...)
+              - pattern: os.open($P, ...)
+              - pattern: pathlib.Path($P, ...)
+              - pattern: os.remove($P)
+              - pattern: os.unlink($P)
+              - pattern: shutil.rmtree($P, ...)
+              - pattern: shutil.copyfile($P, ...)
+              - pattern: shutil.copy($P, ...)
+              - pattern: flask.send_file($P, ...)
+          - focus-metavariable: $P

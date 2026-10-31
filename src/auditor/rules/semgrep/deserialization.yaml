@@ -1,0 +1,69 @@
+rules:
+  - id: auditor.python.deserialization.tainted-pickle-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data is deserialised with pickle (or a pickle-based loader). Loading
+      untrusted pickle data executes arbitrary code.
+    metadata:
+      category: security
+      auditor_group: deserialization
+      auditor_severity: CRITICAL
+      auditor_recommendation: >-
+        Never unpickle untrusted data. Use a data-only format such as JSON with explicit
+        validation.
+      cwe: ["CWE-502: Deserialization of Untrusted Data"]
+      owasp: ["A08:2021 - Software and Data Integrity Failures"]
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/502.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_data(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.body
+                  - pattern: request.POST
+                  - pattern: request.FILES
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: pickle.loads($DATA, ...)
+              - pattern: pickle.load($DATA, ...)
+              - pattern: _pickle.loads($DATA, ...)
+              - pattern: dill.loads($DATA, ...)
+              - pattern: marshal.loads($DATA, ...)
+              - pattern: jsonpickle.decode($DATA, ...)
+          - focus-metavariable: $DATA
+
+  - id: auditor.python.deserialization.yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: >-
+      YAML is loaded with a loader that can construct arbitrary Python objects.
+    metadata:
+      category: security
+      auditor_group: deserialization
+      auditor_severity: HIGH
+      auditor_recommendation: Use yaml.safe_load or Loader=yaml.SafeLoader.
+      cwe: ["CWE-502: Deserialization of Untrusted Data"]
+      owasp: ["A08:2021 - Software and Data Integrity Failures"]
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/502.html"]
+    pattern-either:
+      - pattern: yaml.unsafe_load(...)
+      - pattern: yaml.load($DATA, Loader=yaml.Loader, ...)
+      - pattern: yaml.load($DATA, Loader=yaml.UnsafeLoader, ...)
+      - pattern: yaml.load($DATA, Loader=yaml.FullLoader, ...)
+      - pattern: yaml.load($DATA)
+      - pattern: yaml.load_all($DATA)

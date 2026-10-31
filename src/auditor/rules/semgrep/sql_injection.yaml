@@ -1,0 +1,104 @@
+rules:
+  - id: auditor.python.sql-injection.tainted-sql-query
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data flows into the text of an SQL query. An attacker may be able to
+      read or modify data.
+    metadata:
+      category: security
+      auditor_group: sql-injection
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Use parameterised queries (placeholders plus a separate parameter tuple). Escaping or
+        quoting helpers are not accepted as safe.
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/89.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.body
+                  - pattern: request.COOKIES
+                  - pattern: request.META
+    pattern-sanitizers:
+      # Only numeric conversion is accepted; quoting/escaping is not a safe SQL sanitizer.
+      - pattern: int(...)
+      - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $CUR.execute($Q, ...)
+              - pattern: $CUR.executemany($Q, ...)
+              - pattern: $CUR.executescript($Q)
+              - pattern: $CONN.exec_driver_sql($Q, ...)
+              - pattern: sqlalchemy.text($Q)
+              - pattern: $MODEL.objects.raw($Q, ...)
+              - pattern: pandas.read_sql($Q, ...)
+          - focus-metavariable: $Q
+
+  - id: auditor.python.sql-injection.formatted-sql-query
+    languages: [python]
+    severity: WARNING
+    message: >-
+      An SQL query is built with string formatting from a non-constant value. If any part can
+      be influenced by a user, this is SQL injection.
+    metadata:
+      category: security
+      auditor_group: sql-injection
+      auditor_severity: MEDIUM
+      auditor_recommendation: >-
+        Use parameterised queries. Formatting is only acceptable for values that can never
+        come from users (and then prefer an allowlist).
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/89.html"]
+    pattern-either:
+      # 1) formatting directly inside the query argument
+      - patterns:
+          - pattern-either:
+              - pattern: $CUR.execute($Q, ...)
+              - pattern: $CUR.executemany($Q, ...)
+              - pattern: $CUR.executescript($Q)
+              - pattern: sqlalchemy.text($Q)
+              - pattern: $MODEL.objects.raw($Q, ...)
+          - metavariable-pattern:
+              metavariable: $Q
+              patterns: &formatted
+                - pattern-either:
+                    - pattern: f"...{$X}..."
+                    - pattern: '"..." % $X'
+                    - pattern: '"..." + $X'
+                    - pattern: '"...".format(...)'
+                - pattern-not: '"..." % "..."'
+                - pattern-not: '"..." + "..."'
+      # 2) formatted into a variable first, then executed (same function)
+      - patterns:
+          - pattern-inside: |
+              $V = $FMT
+              ...
+          - pattern-either:
+              - pattern: $CUR.execute($V, ...)
+              - pattern: $CUR.executemany($V, ...)
+              - pattern: sqlalchemy.text($V)
+              - pattern: $MODEL.objects.raw($V, ...)
+          - metavariable-pattern:
+              metavariable: $FMT
+              patterns: *formatted

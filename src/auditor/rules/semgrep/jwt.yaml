@@ -1,0 +1,23 @@
+rules:
+  - id: auditor.python.jwt.signature-not-verified
+    languages: [python]
+    severity: ERROR
+    message: >-
+      A JWT is decoded without verifying its signature. Anyone can forge tokens.
+    metadata:
+      category: security
+      auditor_group: jwt
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Always verify the signature: jwt.decode(token, key, algorithms=["HS256"]) with an
+        explicit algorithm allowlist.
+      cwe: ["CWE-347: Improper Verification of Cryptographic Signature"]
+      owasp: ["A07:2021 - Identification and Authentication Failures"]
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/347.html"]
+    pattern-either:
+      - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+      - pattern: jwt.decode(..., verify=False, ...)
+      - pattern: 'jwt.decode(..., algorithms=[..., "none", ...], ...)'

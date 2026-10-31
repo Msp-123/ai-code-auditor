@@ -1,0 +1,66 @@
+rules:
+  - id: auditor.python.template-injection.tainted-template-source
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data is used as template source code (server-side template injection).
+      An attacker may execute code on the server.
+    metadata:
+      category: security
+      auditor_group: template-injection
+      auditor_severity: CRITICAL
+      auditor_recommendation: >-
+        Render fixed templates and pass user data only as template variables
+        (render_template("page.html", value=...)).
+      cwe: ["CWE-1336: Improper Neutralization of Special Elements Used in a Template Engine"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/1336.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: flask.request.$ATTR
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: flask.render_template_string($SRC, ...)
+              - pattern: jinja2.Template($SRC, ...)
+              - pattern: jinja2.Environment(...).from_string($SRC, ...)
+              - pattern: $ENV.from_string($SRC, ...)
+          - focus-metavariable: $SRC
+
+  - id: auditor.python.template-injection.jinja2-autoescape-disabled
+    languages: [python]
+    severity: WARNING
+    message: >-
+      A Jinja2 environment is created without HTML autoescaping. Rendering user data into
+      HTML then allows cross-site scripting (XSS).
+    metadata:
+      category: security
+      auditor_group: template-injection
+      auditor_severity: MEDIUM
+      auditor_recommendation: >-
+        Use autoescape=jinja2.select_autoescape() (or autoescape=True) for HTML templates.
+      cwe: ["CWE-79: Improper Neutralization of Input During Web Page Generation"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+      references: ["https://cwe.mitre.org/data/definitions/79.html"]
+    pattern-either:
+      # explicitly disabled
+      - pattern: jinja2.Environment(..., autoescape=False, ...)
+      # not set at all: Jinja2's default is autoescape=False
+      - patterns:
+          - pattern: jinja2.Environment(...)
+          - pattern-not: jinja2.Environment(..., autoescape=$ANY, ...)

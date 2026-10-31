@@ -1,0 +1,17 @@
+{
+  "ruleset_version": "2026.10.1",
+  "files": {
+    "code_injection.yaml": "ee902908024b510c163dc2f761aa00e15199126b780272daab4be68b204866fe",
+    "command_injection.yaml": "1c0f62d378724851c76346d1bb76671f4ead5ba865291ebc13b50e0c246f8d84",
+    "deserialization.yaml": "13b31e1d4fca095ecef2edf12dd5668f7b924174a56db0a4eb08c679f213218e",
+    "flow_evidence.yaml": "fa9874acfda943a304b3f3231e767c03304ae7296b6f1793b265c1e6f187b44a",
+    "jwt.yaml": "4a3e7d26b56caa3bd46536162eaa4120ff6efc7a38b08bd104e1c6b134c06e49",
+    "misconfig.yaml": "bba94b30507dc6ad585e516f18645d2e6bd397b0ae229692b16690143485a8f7",
+    "path_traversal.yaml": "1fad9b8d1556a25b946c1990e56c240d55666ba6a94da2a7a843f769d0c5ceab",
+    "sql_injection.yaml": "2d952627ea32e7afafebad19b686b5e42d99f60bb22c64be89d2e6858b9d18d6",
+    "ssrf.yaml": "f2ec23a23831253b0cd0059d6e1bc432845ddc8e2b273182ddd2f88ac30f9f5e",
+    "templates.yaml": "838ca7db20b02620b6c9f53d12388555b67767e637ce6f92eb1d19bd8cd2f5fe",
+    "tls.yaml": "acc360d8000d67f4df1631c6df9e9870a6a9b1540c2e1321b0b6ad5f7b3094a3",
+    "xxe.yaml": "c8ee48224b979c90185f87b2897be3628166b4628a8c0626353aa6724178fca6"
+  }
+}

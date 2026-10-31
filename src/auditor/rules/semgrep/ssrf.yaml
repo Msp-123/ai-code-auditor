@@ -1,0 +1,59 @@
+rules:
+  - id: auditor.python.ssrf.tainted-request-url
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data determines the URL of a server-side HTTP request. An attacker may
+      reach internal services (SSRF).
+    metadata:
+      category: security
+      auditor_group: ssrf
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Do not let users choose the destination. Use a fixed base URL and an allowlist of
+        hosts; block private, loopback and link-local addresses after DNS resolution.
+      cwe: ["CWE-918: Server-Side Request Forgery (SSRF)"]
+      owasp: ["A10:2021 - Server-Side Request Forgery (SSRF)"]
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/918.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.body
+    pattern-sanitizers:
+      # A literal scheme + host + '/' prefix fixes the destination host; only the path varies.
+      # (No generic sanitizer exists: allowlist checks in other code are not recognised.)
+      - patterns:
+          - pattern: '"$PREFIX" + $REST'
+          - metavariable-regex:
+              metavariable: $PREFIX
+              regex: ^https?://[^/]+/
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - patterns:
+                  - pattern-either:
+                      - pattern: requests.$METHOD($URL, ...)
+                      - pattern: httpx.$METHOD($URL, ...)
+                  # 'request' is excluded here: its first argument is the HTTP verb.
+                  - metavariable-regex:
+                      metavariable: $METHOD
+                      regex: ^(get|post|put|patch|delete|head|options|stream)$
+              - pattern: requests.request($VERB, $URL, ...)
+              - pattern: httpx.request($VERB, $URL, ...)
+              - pattern: urllib.request.urlopen($URL, ...)
+              - pattern: urllib.request.Request($URL, ...)
+          - focus-metavariable: $URL

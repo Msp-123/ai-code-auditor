@@ -1,0 +1,91 @@
+# Evidence rules (H5). These two rules never become findings: the Semgrep adapter turns their
+# results into data-flow observations, and auditor.findings.flow_verification joins them
+# (request data -> call argument -> parameter -> SQL text) with a static AST check of the
+# target's own files. Only a fully resolved chain upgrades an existing formatted-SQL finding
+# to HIGH; everything else leaves the pattern finding at MEDIUM.
+rules:
+  - id: auditor.python.flow-evidence.param-to-sql-text
+    languages: [python]
+    severity: INFO
+    message: >-
+      Evidence only (not a finding): a parameter of this function reaches the text of an SQL
+      query in the same function.
+    metadata:
+      category: security
+      auditor_kind: evidence
+      auditor_group: sql-injection
+      auditor_severity: INFO
+      auditor_recommendation: >-
+        Internal observation used to verify cross-function SQL injection; no action by itself.
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: LOW
+      likelihood: LOW
+      impact: LOW
+      references: ["https://cwe.mitre.org/data/definitions/89.html"]
+    mode: taint
+    pattern-sources:
+      - patterns:
+          - pattern-inside: |
+              def $F(..., $P, ...):
+                ...
+          - pattern: $P
+    pattern-sanitizers:
+      - pattern: int(...)
+      - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: $CUR.execute($Q, ...)
+              - pattern: $CUR.executemany($Q, ...)
+              - pattern: $CUR.executescript($Q)
+              - pattern: $CONN.exec_driver_sql($Q, ...)
+              - pattern: sqlalchemy.text($Q)
+              - pattern: $MODEL.objects.raw($Q, ...)
+              - pattern: pandas.read_sql($Q, ...)
+          - focus-metavariable: $Q
+
+  - id: auditor.python.flow-evidence.request-to-call-arg
+    languages: [python]
+    severity: INFO
+    message: >-
+      Evidence only (not a finding): HTTP request data reaches an argument of a call to a
+      function of another module.
+    metadata:
+      category: security
+      auditor_kind: evidence
+      auditor_group: sql-injection
+      auditor_severity: INFO
+      auditor_recommendation: >-
+        Internal observation used to verify cross-function SQL injection; no action by itself.
+      cwe: ["CWE-89: Improper Neutralization of Special Elements used in an SQL Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: LOW
+      likelihood: LOW
+      impact: LOW
+      references: ["https://cwe.mitre.org/data/definitions/89.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.body
+                  - pattern: request.COOKIES
+                  - pattern: request.META
+    pattern-sanitizers:
+      - pattern: int(...)
+      - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern: $M.$FN(...)
+          - pattern-either:
+              - pattern: $M.$FN(..., $ARG, ...)
+              - pattern: $M.$FN(..., $KW=$ARG, ...)
+          - focus-metavariable: $ARG

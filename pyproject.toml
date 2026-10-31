@@ -1,0 +1,68 @@
+[build-system]
+# hatchling >= 1.27 emits PEP 639 licence metadata (License-Expression, License-File)
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-code-auditor"
+version = "0.1.0"
+description = "Evidence-based, read-only, offline-by-default audit CLI for local Python projects (Ruff, Semgrep, Gitleaks, pip-audit) with a unified report and a quality gate."
+readme = "README.md"
+# SPDX expression (PEP 639) for the distribution as a whole: the project is Apache-2.0 and the
+# published packages also contain four Gitleaks default rules under MIT (THIRD_PARTY_NOTICES.md).
+# `authors` is set by the project owner before publication; no identity is invented here.
+license = "Apache-2.0 AND MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+# Only the verified interpreter is claimed (Windows 11 / CPython 3.12; CHANGELOG known limitations).
+requires-python = ">=3.12"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "typer>=0.12",
+    "pydantic>=2.7",
+    # Runtime scanner (Stage 2). Pinned to the tested minor: Ruff's JSON output, rule codes
+    # and syntax-error messages are part of the adapter's contract.
+    "ruff>=0.17,<0.18",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[project.scripts]
+auditor = "auditor.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/auditor"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+# Deliberately vulnerable Semgrep rule fixtures (never executed). Excluded from the project's
+# own lint/format only; the auditor still reports them when scanning this repository.
+extend-exclude = ["tests/fixtures/semgrep_rules"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "S"]
+
+[tool.ruff.lint.flake8-bugbear]
+# Typer parameter declarations are immutable markers, not shared mutable defaults.
+extend-immutable-calls = ["typer.Argument", "typer.Option"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

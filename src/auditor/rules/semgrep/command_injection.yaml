@@ -1,0 +1,52 @@
+rules:
+  - id: auditor.python.command-injection.tainted-shell-command
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data flows into a shell command. An attacker may be able to inject
+      additional commands.
+    metadata:
+      category: security
+      auditor_group: command-injection
+      auditor_severity: HIGH
+      auditor_recommendation: >-
+        Pass an argument list with shell=False. Never build shell command strings from user
+        input. shlex.quote only protects POSIX shells, not cmd.exe on Windows.
+      cwe: ["CWE-78: Improper Neutralization of Special Elements used in an OS Command"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/78.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.body
+                  - pattern: request.COOKIES
+                  - pattern: request.META
+                  - pattern: request.FILES
+    pattern-sanitizers:
+      # Context-specific: valid for POSIX shell commands only (documented in the message).
+      - pattern: shlex.quote(...)
+      - pattern: int(...)
+      - pattern: float(...)
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: subprocess.$FUNC($CMD, ..., shell=True, ...)
+              - pattern: os.system($CMD)
+              - pattern: os.popen($CMD, ...)
+              - pattern: subprocess.getoutput($CMD)
+              - pattern: subprocess.getstatusoutput($CMD)
+          - focus-metavariable: $CMD

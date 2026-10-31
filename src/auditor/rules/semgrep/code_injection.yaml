@@ -1,0 +1,42 @@
+rules:
+  - id: auditor.python.code-injection.tainted-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: >-
+      User-controlled data is evaluated as Python code. An attacker can run arbitrary code.
+    metadata:
+      category: security
+      auditor_group: code-injection
+      auditor_severity: CRITICAL
+      auditor_recommendation: >-
+        Never evaluate user input. For literals use ast.literal_eval; otherwise parse the input
+        explicitly.
+      cwe: ["CWE-95: Improper Neutralization of Directives in Dynamically Evaluated Code"]
+      owasp: ["A03:2021 - Injection"]
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      references: ["https://cwe.mitre.org/data/definitions/95.html"]
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: input(...)
+          - pattern: sys.argv
+          - pattern: flask.request.$ATTR
+          - pattern: flask.request.get_json(...)
+          - patterns:
+              - pattern-inside: |
+                  def $VIEW(request, ...):
+                      ...
+              - pattern-either:
+                  - pattern: request.GET
+                  - pattern: request.POST
+                  - pattern: request.body
+    # No sanitizer: there is no safe way to eval arbitrary user input.
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern: eval($CODE, ...)
+              - pattern: exec($CODE, ...)
+              - pattern: compile($CODE, ...)
+          - focus-metavariable: $CODE
