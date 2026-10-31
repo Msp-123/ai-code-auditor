@@ -93,6 +93,17 @@ written to, and secret values never reach a report, the terminal or a log.
   `requires-python >= 3.12`. Python 3.11 was never tested and is not claimed; `auditor doctor`
   requires 3.12 as well.
 
+### Documentation (2026-10-31, same version)
+
+- All public documentation is in English. `docs/MVP_VALIDATION.md` is the validation report of
+  the released 0.1.0 build (safety invariants, accuracy on three repositories, verified SQL
+  data flow, finding identity stability, reproducible packaging, test results). The initial
+  pilot before hardening is preserved unchanged as `docs/PILOT_01_VALIDATION.md`.
+- README restructured for GitHub users: features, scanners, installation, quick start, CLI
+  examples, report outputs, quality gates, git history scanning, verified SQL flow, security
+  and privacy design, validation results, known limitations, documentation, licence. No
+  product behaviour, report format or security property changed.
+
 ### Exit codes
 
 `0` complete coverage and the gate passed (or was not evaluated) · `1` internal or report-write
@@ -101,9 +112,10 @@ Precedence: 1 and 2 > 4 > 3.
 
 ### Known limitations
 
-The measured results are in `docs/MVP_VALIDATION.md` (three repositories; nothing here
-generalises to all Python projects); the development repository keeps the full per-stage
-limitation lists and the decision log. In short:
+The measured results are in `docs/MVP_VALIDATION.md` (current 0.1.0 build) and
+`docs/PILOT_01_VALIDATION.md` (historical pilot); three repositories, nothing here generalises
+to all Python projects. The development repository keeps the full per-stage limitation lists
+and the decision log. In short:
 
 - **Accuracy as measured on pilot 01:** on Flask, 30 of 34 security-category findings were
   false positives (test fixtures, documentation examples, developer asserts); on the
